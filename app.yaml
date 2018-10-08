@@ -1,0 +1,12 @@
+runtime: go
+api_version: go1
+
+handlers:
+- url: /
+  script: _go_app
+- url: /index
+  script: _go_app
+- url: /rpc/ping.action
+  script: _go_app
+- url: /rpc/obtainTicket.action
+  script: _go_app
