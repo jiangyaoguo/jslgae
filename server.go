@@ -11,11 +11,20 @@ import (
 	"encoding/hex"
 	"strconv"
 	"crypto/rand"
+	"io/ioutil"
 
 	"google.golang.org/appengine"
 )
 
+var gPrivateKey []byte
+
 func main(){
+	var err error
+	gPrivateKey, err = ioutil.ReadFile("key.pem")
+	if err != nil {
+		return
+	}
+
 	http.HandleFunc("/",hello)
 	http.HandleFunc("/index", index)
 	http.HandleFunc("/rpc/ping.action", pingAction)
@@ -35,7 +44,7 @@ func pingAction(w http.ResponseWriter, r *http.Request){
 	salt := r.URL.Query().Get("salt")
 	xmlResponse := "<PingResponse><message></message><responseCode>OK</responseCode><salt>" +
 		salt + "</salt></PingResponse>"
-	xmlSignature, _ := p.signature(xmlResponse)
+	xmlSignature, _ := signature(xmlResponse)
 	w.Header().Add("Content-Type", "text/xml")
 	w.Write([]byte("<!-- " + xmlSignature + " -->\n" + xmlResponse))
 }
@@ -55,7 +64,7 @@ func obtainTicket(w http.ResponseWriter, r *http.Request) {
 		strconv.Itoa(prolongationPeriod) + "</prolongationPeriod><responseCode>OK</responseCode><salt>" +
 		salt + "</salt><ticketId>1</ticketId><ticketProperties>licensee=" + username +
 		"\tlicenseType=0\t</ticketProperties></ObtainTicketResponse>"
-	xmlSignature, _ := p.signature(xmlResponse)
+	xmlSignature, _ := signature(xmlResponse)
 	w.Header().Add("Content-Type", "text/xml")
 	w.Write([]byte("<!-- " + xmlSignature + " -->\n" + xmlResponse))
 }
